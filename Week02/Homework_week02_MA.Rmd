@@ -50,6 +50,10 @@ library(spData)
 library(spDataLarge)
 ```
 
+```{r}
+library(RColorBrewer)
+```
+
 
 #  Exercise 1 - Make a map
 
@@ -102,7 +106,24 @@ tm_shape(nz_elev)  +
 
 ```{r improved-map}
 # /Start Code/
-
+tm_shape(nz_elev)  +
+  tm_raster(title = "Elevation (MASL)",
+            style = "cont",
+            palette = "-RdBu") +
+  tm_shape(nz) +
+  tm_borders(col = "black", 
+             lwd = 1.5) +
+  tm_scale_bar(breaks = c(0, 50, 100, 150, 200),
+               text.size = 0.5) +
+  tm_compass(position = c("RIGHT", "top"),
+             type = "rose", 
+             size = 2) +
+  tm_credits(text = "M. Almasi, 2023") +
+  tm_layout(main.title = "New Zealand",
+            bg.color = "lightgrey",
+            inner.margins = c(0, 0, 0, 0),
+            main.title.position = c("center", "top")
+            )
 # /End Code/
 ```
 
@@ -127,7 +148,7 @@ Type answers to the questions as code comments next to or under the code used
 
 * Display the `zion` object and view its structure.
 
-  - What can you say about the content of this file?
+  - What can you say about the content of this file?:
   - What type of data does it store? 
   - What is the coordinate system used?
   - How many attributes does it contain?
@@ -146,10 +167,15 @@ Type answers to the questions as code comments next to or under the code used
 
 ```{r inspect-data}
 # /Start Code / #
-
-
+srtm
 # /End Code/ #
 ```
+
+SRTM:(https://mhallwor.github.io/_pages/basics_Rasters)
+Raster data (raster layer)
+* Has 457 rows, 465 columns, 212500 cells in total. 
+* Extent: Ranges from -113 to -113 longtitude and 37 to 37 latitude (weird??)
+* coordinate reference (WGS84: world standard datum)
 
 # Exercise 3 - Reconciling Coordinate systems
 
