@@ -217,7 +217,7 @@ length(which(result > val))
 forests$areas <- st_area(forests)
 
 # Create a quick histogram of the areas using hist
-hist(areas)
+hist(forests$areas)
 
 # Filter to forests greater than 30000 (square meters)
 big_forests <- forests %>% filter(unclass(areas) > 200000)
@@ -311,7 +311,10 @@ nlayers(aarhus)
 Elevation: 396 rows, 876 cols (395x876)
 
 2. What is the resolution of `aarhus` orthophoto? How many layers does it contain and what do they represent?
-3334 x 3334 x 5 layers. 
+3334 x 3334 x 5 layers. Seems like there is an artefact layer in the data when you plot it: 
+```{r}
+plot(aarhus)
+```
 
 Now you've learned how to read in single and multi-band rasters. You should have noticed, based on the `nlayers()` function, that the `elevation` object has a single layer and the `aarhus` object has four.
 
@@ -328,14 +331,16 @@ Instead of storing raster objects in data frames, the `raster` package stores sp
 
 ```{r load raster, eval=FALSE, echo=TRUE}
 # Get the extent of the elevation and aarhus object
-___(___)
+extent(elevation)
+extent(aarhus)
 
 # Get the CRS of the aarhus and elevation object
-___(___)
+crs(elevation)
+crs(aarhus)
 
 # Determine the number of grid cells in both raster objects
-___(aarhus)
-___(elevation)
+ncell(aarhus)
+ncell(elevation)
 ```
 
 
@@ -358,18 +363,17 @@ The raster package has added useful methods for plotting both single and multi-b
 
 ```{r plot raster, eval=FALSE, echo=TRUE }
 # Plot the elevation raster (single raster)
-___
+plot(elevation)
 
 # Plot the aarhus raster (as a single image for each layer)
-___
+plot(aarhus)
 
 # Plot the aarhus raster as an image
-____
+plotRGB(aarhus, stretch = "lin")
 ```
 
 
 Nice work! As you can see, the `plot()` function can be used to plot single layers while the `plotRGB()` function can be used to combine layers into a single image. Plotting two raster objects of different extents, resolution and CRS can not be done without additional wrangling
-
 
 
 # Task 9: Vector and raster coordinate systems
@@ -387,19 +391,19 @@ When the geographic data you read in with `sf` already has a CRS defined both `s
 
 ```{r crs, eval=FALSE}
 # Determine the CRS for the elevation and playgrounds vector objects
-___(forests)
-___(playgrounds)
+crs(forests)
+crs(playgrounds)
 
 # Assign the CRS to playgrounds
-crs_1 <- _____
-___(playgrounds) <- crs_1
+crs_1 <- 4326
+st_crs(playgrounds) <- crs_1
 
 # Determine the CRS for the aarhus and elevation rasters
-___(aarhus)
-___(elevation)
+crs(aarhus)
+crs(elevation)
 
 # Write here the proj4string for the aarhus layer
-crs_2 <- "___"
+crs_2 <- "+proj=longlat +ellps=WGS84 +no_defs"
 
 ```
 
@@ -424,19 +428,17 @@ Note that you will use `method = "ngb"` in your call to `projectRaster()` to pre
 
 ```{r crs-assign, eval=FALSE}
 # Get the CRS from the aarhus object
-the_crs <- ___(aarhus, asText = TRUE)
+the_crs <- crs(aarhus, asText = TRUE)
 
 # Project playgrounds to match the CRS of aarhus
-playgrounds_crs <- ___(playgrounds, crs = ___)
+playgrounds_crs <- st_transform(playgrounds, crs = the_crs)
 
 # Project elevation to match the CRS of aarhus
-elevation_crs <- ___(elevation, crs = ___, method = "ngb")
+elevation_crs <- projectRaster(elevation, crs = the_crs, method = "ngb")
 
 # Look at the CRS to see if they match
-___(playgrounds_crs)
-___(elevation_crs)
-
-
+st_crs(playgrounds_crs)
+st_crs(elevation_crs)
 ```
 
 
@@ -457,12 +459,15 @@ Make sure `sf`, `raster` and `tmap` are loaded in your workspace.
 * Re-run the `plot()` code from the instruction above, color the `playgrounds` green and make the points stand out larger by setting the `lwd` argument to 3. You can also increase the transparency of `aarhus`, by setting its `alpha` at around 100.
 * Run the given `tmap` code. Note that `tm_rgb()` is used for multi-layered raster
 
+
+
 ```{r plot, eval=FALSE}
 # Plot aarhus and playgrounds (run both lines together)
 # Do you see the playgrounds?
-___(aarhus, stretch = "lin")
-___(playgrounds, add = TRUE)
+playgrounds <- st_transform(playgrounds, crs = the_crs)
 
+plotRGB(aarhus, stretch = "lin", alpha = 100)
+plot(playgrounds, add = TRUE, col = "green", lwd = 3)
 
 # Simply run the tmap code
 library(tmap)
@@ -501,9 +506,8 @@ In the case of GADM you must also provide the level of administrative subdivisio
 ## Examples
 ```{r getData, eval = FALSE}
 library(raster)
-elevation <- getData("alt", country = "DNK", mask = TRUE)
-municipalities <- getData("GADM", country = "DNK", level = 2)
-DK_border <- getData("GADM", country = "DNK", level = 0)
-
+elevation <- getData(name = "alt", country = "DNK", mask = TRUE)
+municipalities <- getData(name = "GADM", country = "DNK", level = 2)
+DK_border <- getData(name = "GADM", country = "DNK", level = 0)
 ```
 
